@@ -11,7 +11,7 @@ const STEPS = [
 ];
 
 // ⚡ HIER DEINEN N8N WEBHOOK EINTRAGEN:
-const WEBHOOK_URL = "https://DEINE-N8N-INSTANZ.app/webhook/potenzialanalyse";
+const WEBHOOK_URL = "https://n8n.srv1249219.hstgr.cloud/webhook/c4c76f9a-5c37-4401-a0bd-6ac9536b8216";
 
 const PAIN_POINTS = [
   {
