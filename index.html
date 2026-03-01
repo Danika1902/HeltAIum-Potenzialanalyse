@@ -10,6 +10,7 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { background: #0D0D0D; }
     </style>
+    <!-- LinkedIn Insight Tag -->
     <script type="text/javascript">
       _linkedin_partner_id = "8728194";
       window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
@@ -24,6 +25,16 @@
         b.type = "text/javascript";b.async = true;
         b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
         s.parentNode.insertBefore(b, s);})(window.lintrk);
+    </script>
+    <!-- Apollo Tracking -->
+    <script>
+      function initApollo(){
+        var n=Math.random().toString(36).substring(7),o=document.createElement("script");
+        o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache="+n,o.async=!0,o.defer=!0,
+        o.onload=function(){window.trackingFunctions.onLoad({appId:"69a473c1f9e20c00155edba9"})},
+        document.head.appendChild(o)
+      }
+      initApollo();
     </script>
   </head>
   <body>
