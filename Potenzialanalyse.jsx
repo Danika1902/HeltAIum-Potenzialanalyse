@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar } from "recharts";
 
 // ⚡ HIER DEINEN N8N WEBHOOK EINTRAGEN:
-const WEBHOOK_URL = "https://n8n.srv1249219.hstgr.cloud/webhook/c4c76f9a-5c37-4401-a0bd-6ac9536b8216";
+const WEBHOOK_URL = "https://DEINE-N8N-INSTANZ.app/webhook/potenzialanalyse";
 
 const T = {
   de: {
@@ -313,13 +314,39 @@ export default function Potenzialanalyse() {
   );
 
   const renderIntro = () => (
-    <div style={{ textAlign: "center", maxWidth: "640px", margin: "0 auto" }}>
-      <div style={{ fontSize: "14px", fontWeight: "600", letterSpacing: "3px", color: "#D4A853", textTransform: "uppercase", marginBottom: "24px" }}>{ui.freeAnalysis}</div>
-      <h1 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: "800", fontFamily: "'Playfair Display', serif", color: "#FFF", lineHeight: "1.15", marginBottom: "24px" }}>{ui.heroTitle1}<br/>{ui.heroTitle2} <span style={{ color: "#D4A853" }}>{ui.heroHighlight}</span><br/>{ui.heroTitle3}</h1>
+    <div style={{ textAlign: "center", maxWidth: "640px", margin: "0 auto", position: "relative" }}>
+      <div style={{ position: "absolute", top: "-40px", left: "-60px", width: "120px", height: "120px", background: "radial-gradient(circle, rgba(212,168,83,0.08), transparent)", borderRadius: "50%", animation: "float 6s ease-in-out infinite" }} />
+      <div style={{ position: "absolute", top: "20px", right: "-40px", width: "80px", height: "80px", background: "radial-gradient(circle, rgba(76,175,80,0.06), transparent)", borderRadius: "50%", animation: "float 8s ease-in-out infinite reverse" }} />
+      <style>{`@keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }`}</style>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 20px", background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: "40px", marginBottom: "28px" }}>
+        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4CAF50", boxShadow: "0 0 8px rgba(76,175,80,0.5)" }} />
+        <span style={{ fontSize: "13px", fontWeight: "600", letterSpacing: "2px", color: "#D4A853", textTransform: "uppercase" }}>{ui.freeAnalysis}</span>
+      </div>
+      <h1 style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: "800", fontFamily: "'Playfair Display', serif", color: "#FFF", lineHeight: "1.15", marginBottom: "24px" }}>
+        {ui.heroTitle1}<br/>{ui.heroTitle2}{" "}
+        <span style={{ color: "#D4A853", position: "relative", display: "inline-block" }}>
+          {ui.heroHighlight}
+          <span style={{ position: "absolute", bottom: "-4px", left: "0", right: "0", height: "3px", background: "linear-gradient(90deg, #D4A853, transparent)", borderRadius: "2px" }} />
+        </span>
+        <br/>{ui.heroTitle3}
+      </h1>
       <p style={{ fontSize: "17px", color: "rgba(255,255,255,0.5)", lineHeight: "1.8", maxWidth: "500px", margin: "0 auto 48px" }}>{ui.heroSubtitle}</p>
-      <button style={S.btnP} onClick={() => transition(1)} onMouseOver={hIn} onMouseOut={hOut}>{ui.startBtn}</button>
-      <div className="hero-badges" style={{ marginTop: "48px", display: "flex", justifyContent: "center", gap: "40px", flexWrap: "wrap" }}>
-        {[["⏱️",ui.badge1],["🔒",ui.badge2],["🎯",ui.badge3]].map(([i,x]) => <div key={x} style={{ display:"flex",alignItems:"center",gap:"10px",color:"rgba(255,255,255,0.35)",fontSize:"14px" }}><span style={{fontSize:"18px"}}>{i}</span>{x}</div>)}
+      <button style={{ ...S.btnP, padding: "18px 48px", fontSize: "17px", boxShadow: "0 4px 30px rgba(212,168,83,0.2)" }} onClick={() => transition(1)} onMouseOver={hIn} onMouseOut={hOut}>{ui.startBtn}</button>
+      <div className="hero-badges" style={{ marginTop: "48px", display: "flex", justifyContent: "center", gap: "32px", flexWrap: "wrap" }}>
+        {[["⏱️",ui.badge1],["🔒",ui.badge2],["🎯",ui.badge3]].map(([i,x]) => (
+          <div key={x} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 16px", background: "rgba(255,255,255,0.02)", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.04)" }}>
+            <span style={{fontSize:"18px"}}>{i}</span>
+            <span style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", fontWeight: "500" }}>{x}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: "60px", display: "flex", justifyContent: "center", gap: "40px", flexWrap: "wrap", opacity: 0.35 }}>
+        {["n8n", "HubSpot", "Zapier", "Slack", "Stripe"].map(tool => (
+          <span key={tool} style={{ fontSize: "13px", fontWeight: "600", color: "rgba(255,255,255,0.6)", letterSpacing: "1px" }}>{tool}</span>
+        ))}
+      </div>
+      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.15)", marginTop: "10px" }}>
+        {lang === "hu" ? "Integráció 200+ eszközzel" : "Integration mit 200+ Tools"}
       </div>
     </div>
   );
@@ -465,38 +492,168 @@ export default function Potenzialanalyse() {
   const renderResult = () => {
     const yearSavings = totalSavingsEuro * 12;
     const subtitle = contact.vorname ? contact.vorname+", "+ui.resultSubtitlePre : ui.resultSubtitleNoPre;
+
+    // Chart data
+    const painChartData = pains.map(pid => {
+      const p = t.painPoints.find(pp => pp.id === pid);
+      return { name: p.label.length > 15 ? p.label.substring(0,15)+"…" : p.label, hours: p.savingsHoursWeek, euro: p.savingsEuroMonth, icon: p.icon };
+    });
+    if (manualHours > 0) {
+      painChartData.push({ name: lang==="hu" ? "Manuális" : "Manuell", hours: Math.round(manualHours * 0.7), euro: Math.round(manualHours * 35 * 4 * 0.7) });
+    }
+
+    const pieData = pains.map(pid => {
+      const p = t.painPoints.find(pp => pp.id === pid);
+      return { name: p.label, value: p.savingsEuroMonth };
+    });
+    if (manualHours > 0) pieData.push({ name: lang==="hu" ? "Manuális feladatok" : "Manuelle Aufgaben", value: Math.round(manualHours * 35 * 4 * 0.7) });
+    const PIE_COLORS = ["#D4A853", "#4CAF50", "#5C9EE8", "#E87D5C", "#9B6ED4", "#E8B85C", "#5CE8B8"];
+
+    const gaugeData = [{ name: "score", value: Math.min(Math.round((totalSavingsHours / 40) * 100), 98), fill: "#D4A853" }];
+
+    const CustomTooltip = ({ active, payload }) => {
+      if (active && payload && payload.length) {
+        return (
+          <div style={{ background: "rgba(13,13,13,0.95)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: "10px", padding: "12px 16px", fontSize: "13px" }}>
+            <div style={{ color: "#D4A853", fontWeight: "700", marginBottom: "4px" }}>{payload[0].payload.name}</div>
+            <div style={{ color: "#E8E4DF" }}>{payload[0].value}{payload[0].dataKey === "hours" ? "h "+ui.perWeek : "€ "+ui.perMonth}</div>
+          </div>
+        );
+      }
+      return null;
+    };
+
     return (
-      <div style={{ maxWidth: "680px", margin: "0 auto", textAlign: "center" }}>
+      <div style={{ maxWidth: "740px", margin: "0 auto", textAlign: "center" }}>
         <div style={{ fontSize: "14px", fontWeight: "600", letterSpacing: "3px", color: "#D4A853", textTransform: "uppercase", marginBottom: "20px" }}>{ui.resultTag}</div>
         <h2 style={{ ...S.title, fontSize: "clamp(28px, 5vw, 42px)", marginBottom: "16px" }}>{ui.resultTitle}</h2>
         <p style={{ ...S.sub, textAlign: "center", margin: "0 auto 40px" }}>{subtitle} {ui.resultSubtitlePost}</p>
-        <div className="kpi-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "32px" }}>
-          <div style={{ background: "linear-gradient(160deg, rgba(212,168,83,0.12), rgba(212,168,83,0.03))", border: "1px solid rgba(212,168,83,0.2)", borderRadius: "20px", padding: "32px 24px" }}>
-            <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", marginBottom: "8px", fontWeight: "500", textTransform: "uppercase", letterSpacing: "1.5px" }}>{ui.savingsWeek}</div>
-            <div style={{ fontSize: "clamp(36px, 5vw, 48px)", fontWeight: "800", color: "#D4A853", fontFamily: "'Playfair Display', serif" }}><AnimatedNumber value={totalSavingsHours} suffix="h"/></div>
+
+        {/* KPI Cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "36px" }} className="kpi-grid-2">
+          <div style={{ background: "linear-gradient(160deg, rgba(212,168,83,0.12), rgba(212,168,83,0.03))", border: "1px solid rgba(212,168,83,0.2)", borderRadius: "20px", padding: "28px 20px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "80px", height: "80px", background: "radial-gradient(circle, rgba(212,168,83,0.1), transparent)", borderRadius: "50%" }}/>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "8px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1.5px" }}>{ui.savingsWeek}</div>
+            <div style={{ fontSize: "clamp(32px, 4vw, 44px)", fontWeight: "800", color: "#D4A853", fontFamily: "'Playfair Display', serif" }}><AnimatedNumber value={totalSavingsHours} suffix="h"/></div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", marginTop: "4px" }}>{ui.savedHours}</div>
           </div>
-          <div style={{ background: "linear-gradient(160deg, rgba(76,175,80,0.1), rgba(76,175,80,0.02))", border: "1px solid rgba(76,175,80,0.2)", borderRadius: "20px", padding: "32px 24px" }}>
-            <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", marginBottom: "8px", fontWeight: "500", textTransform: "uppercase", letterSpacing: "1.5px" }}>{ui.savingsMonth}</div>
-            <div style={{ fontSize: "clamp(36px, 5vw, 48px)", fontWeight: "800", color: "#4CAF50", fontFamily: "'Playfair Display', serif" }}><AnimatedNumber value={totalSavingsEuro} suffix="€"/></div>
+          <div style={{ background: "linear-gradient(160deg, rgba(76,175,80,0.1), rgba(76,175,80,0.02))", border: "1px solid rgba(76,175,80,0.2)", borderRadius: "20px", padding: "28px 20px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "80px", height: "80px", background: "radial-gradient(circle, rgba(76,175,80,0.1), transparent)", borderRadius: "50%" }}/>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "8px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1.5px" }}>{ui.savingsMonth}</div>
+            <div style={{ fontSize: "clamp(32px, 4vw, 44px)", fontWeight: "800", color: "#4CAF50", fontFamily: "'Playfair Display', serif" }}><AnimatedNumber value={totalSavingsEuro} suffix="€"/></div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", marginTop: "4px" }}>{ui.savedMoney}</div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "28px 20px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "80px", height: "80px", background: "radial-gradient(circle, rgba(255,255,255,0.03), transparent)", borderRadius: "50%" }}/>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "8px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1.5px" }}>{ui.savingsYear}</div>
+            <div style={{ fontSize: "clamp(32px, 4vw, 44px)", fontWeight: "800", color: "#E8E4DF", fontFamily: "'Playfair Display', serif" }}><AnimatedNumber value={yearSavings} suffix="€" duration={1600}/></div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", marginTop: "4px" }}>{ui.savingsYearSub}</div>
           </div>
         </div>
-        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "28px 32px", marginBottom: "40px" }}>
-          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "1.5px" }}>{ui.savingsYear}</div>
-          <div style={{ fontSize: "clamp(32px, 5vw, 44px)", fontWeight: "800", color: "#E8E4DF", fontFamily: "'Playfair Display', serif" }}><AnimatedNumber value={yearSavings} suffix="€" duration={1600}/></div>
-          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.35)", marginTop: "8px" }}>{ui.savingsYearSub}</div>
+
+        {/* Charts Section */}
+        {pains.length > 0 && (
+          <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "36px" }}>
+            {/* Bar Chart - Hours saved */}
+            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "24px 20px" }}>
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "rgba(255,255,255,0.5)", marginBottom: "20px", textTransform: "uppercase", letterSpacing: "1px", textAlign: "left" }}>
+                {lang === "hu" ? "Időmegtakarítás részletezés" : "Zeitersparnis nach Bereich"}
+              </div>
+              <ResponsiveContainer width="100%" height={Math.max(180, painChartData.length * 40)}>
+                <BarChart data={painChartData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                  <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} axisLine={false} tickLine={false} unit="h" />
+                  <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(212,168,83,0.05)" }} />
+                  <Bar dataKey="hours" radius={[0, 6, 6, 0]} barSize={22}>
+                    {painChartData.map((_, i) => <Cell key={i} fill={i === painChartData.length - 1 ? "rgba(212,168,83,0.4)" : "#D4A853"} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Pie Chart - Cost distribution */}
+            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "24px 20px" }}>
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "rgba(255,255,255,0.5)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "1px", textAlign: "left" }}>
+                {lang === "hu" ? "Költségmegtakarítás eloszlás" : "Kostenersparnis Verteilung"}
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" stroke="none">
+                    {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div style={{ background: "rgba(13,13,13,0.95)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: "10px", padding: "10px 14px", fontSize: "12px" }}>
+                          <div style={{ color: "#D4A853", fontWeight: "700" }}>{payload[0].name}</div>
+                          <div style={{ color: "#E8E4DF" }}>{payload[0].value.toLocaleString("de-DE")}€ {ui.perMonth}</div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", marginTop: "4px" }}>
+                {pieData.map((d, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    {d.name.length > 12 ? d.name.substring(0,12)+"…" : d.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Automation Score Gauge */}
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "28px 24px", marginBottom: "36px" }}>
+          <div style={{ fontSize: "12px", fontWeight: "700", color: "rgba(255,255,255,0.5)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>
+            {lang === "hu" ? "Automatizálási potenciál" : "Automatisierungs-Potenzial"}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "24px", flexWrap: "wrap" }}>
+            <div style={{ position: "relative", width: "140px", height: "140px" }}>
+              <ResponsiveContainer width={140} height={140}>
+                <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="90%" data={gaugeData} startAngle={210} endAngle={-30}>
+                  <RadialBar background={{ fill: "rgba(255,255,255,0.04)" }} dataKey="value" cornerRadius={10} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
+                <div style={{ fontSize: "32px", fontWeight: "800", color: "#D4A853", fontFamily: "'Playfair Display', serif" }}>{gaugeData[0].value}%</div>
+              </div>
+            </div>
+            <div style={{ textAlign: "left", maxWidth: "320px" }}>
+              <div style={{ fontSize: "15px", fontWeight: "700", color: "#E8E4DF", marginBottom: "6px" }}>
+                {gaugeData[0].value >= 70 ? (lang === "hu" ? "Magas automatizálási potenciál!" : "Hohes Automatisierungs-Potenzial!") : gaugeData[0].value >= 40 ? (lang === "hu" ? "Közepes automatizálási potenciál" : "Mittleres Automatisierungs-Potenzial") : (lang === "hu" ? "Növekedési lehetőség" : "Wachstumspotenzial")}
+              </div>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: "1.6" }}>
+                {gaugeData[0].value >= 70
+                  ? (lang === "hu" ? "A folyamataitok nagymértékben automatizálhatók. Jelentős idő- és költségmegtakarítás érhető el." : "Eure Prozesse sind stark automatisierbar. Erhebliche Zeit- und Kosteneinsparungen sind möglich.")
+                  : (lang === "hu" ? "Célzott automatizálásokkal már érzékelhető javulás érhető el." : "Mit gezielten Automatisierungen sind spürbare Verbesserungen möglich.")}
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Pain points list */}
         {pains.length > 0 && (
           <div style={{ textAlign: "left", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "28px 32px", marginBottom: "32px" }}>
             <div style={{ fontSize: "14px", fontWeight: "700", color: "rgba(255,255,255,0.6)", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "1px" }}>{ui.painListTitle}</div>
             {pains.map(pid => { const p = t.painPoints.find(pp => pp.id === pid); return (
-              <div key={pid} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <div key={pid} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <span style={{ fontSize: "20px" }}>{p.icon}</span>
-                <span style={{ flex: 1, color: "#E8E4DF", fontSize: "14px" }}>{p.label}</span>
-                <span style={{ color: "#D4A853", fontSize: "13px", fontWeight: "600" }}>~{p.savingsHoursWeek}h/W</span>
+                <span style={{ flex: 1, color: "#E8E4DF", fontSize: "14px", fontWeight: "500" }}>{p.label}</span>
+                <div style={{ display: "flex", gap: "16px" }}>
+                  <span style={{ color: "#D4A853", fontSize: "13px", fontWeight: "600" }}>~{p.savingsHoursWeek}h/W</span>
+                  <span style={{ color: "#4CAF50", fontSize: "13px", fontWeight: "600" }}>~{p.savingsEuroMonth.toLocaleString("de-DE")}€/M</span>
+                </div>
               </div>
             ); })}
           </div>
         )}
+
+        {/* CTA */}
         <div style={{ background: "linear-gradient(135deg, rgba(212,168,83,0.15), rgba(212,168,83,0.05))", border: "1px solid rgba(212,168,83,0.25)", borderRadius: "20px", padding: "36px 32px" }}>
           <div style={{ fontSize: "22px", fontWeight: "800", color: "#FFF", fontFamily: "'Playfair Display', serif", marginBottom: "12px" }}>{ui.ctaTitle}</div>
           <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", maxWidth: "420px", margin: "0 auto 24px" }}>{ui.ctaSubtitle}</p>
@@ -531,6 +688,10 @@ export default function Potenzialanalyse() {
           .cta-buttons button { width: 100% !important; text-align: center !important; }
           .hero-badges { gap: 20px !important; }
         }
+        @media (min-width: 641px) and (max-width: 900px) {
+          .kpi-grid-2 { grid-template-columns: 1fr 1fr !important; }
+        }
+        .recharts-wrapper { font-family: 'DM Sans', sans-serif !important; }
       `}</style>
       <div style={{ position: "fixed", top: "-30%", right: "-20%", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(212,168,83,0.04) 0%, transparent 65%)", pointerEvents: "none" }}/>
       <div style={{ position: "fixed", bottom: "-20%", left: "-15%", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(212,168,83,0.03) 0%, transparent 60%)", pointerEvents: "none" }}/>
